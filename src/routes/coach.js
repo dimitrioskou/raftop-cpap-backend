@@ -1,15 +1,14 @@
 const express = require("express");
 const router = express.Router();
+const pool = require("../db.js");
 
-router.get("/api/patient/coach/today", (req,res)=>{
-  res.json({
-    ok:true,
-    plan:{
-      message:"Σήμερα στόχος 5 ώρες CPAP.",
-      motivator:"Μικρά βήματα, μεγάλη βελτίωση.",
-      tip:"Φόρα τη μάσκα 30 λεπτά πριν κοιμηθείς."
-    }
-  });
+router.get("/coach/patients", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM patients");
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: "Coach error" });
+  }
 });
 
 module.exports = router;

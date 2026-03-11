@@ -1,9 +1,6 @@
-function adminRequired(req, res, next){
-  const key = req.headers["x-admin-key"];
-  if(!key || key !== process.env.ADMIN_API_KEY){
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-  next();
-}
-module.exports = { adminRequired };
+module.exports = (req, res, next) => {
+  if (req.user.role !== "admin")
+    return res.status(403).json({ error: "Admins only" });
 
+  next();
+};

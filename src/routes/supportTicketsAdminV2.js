@@ -1,16 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const { adminRequired } = require("../middleware/admin");
-const { supabaseAdmin } = require("../supabase");
+const pool = require("../db.js");
 
-router.get("/api/admin/support/tickets", adminRequired, async (req, res) => {
-  const { data, error } = await supabaseAdmin
-    .from("support_tickets")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) return res.status(500).json({ error:"Fetch failed" });
-  res.json({ ok:true, items:data });
+router.get("/admin/support/tickets", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM support_tickets ORDER BY created_at DESC");
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: "Admin tickets error" });
+  }
 });
 
 module.exports = router;
