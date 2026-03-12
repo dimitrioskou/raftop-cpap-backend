@@ -1,171 +1,38 @@
 const express = require("express")
 const router = express.Router()
+const supabase = require("../supabase")
 
-const pool = require("../db")
+// GET patients
+router.get("/patients", async (req, res) => {
 
-// ============================
-// GET ALL PATIENTS
-// ============================
+  const { data, error } = await supabase
+    .from("patients")
+    .select("*")
 
-router.get("/", async (req, res) => {
+  if (error) {
+    return res.status(500).json(error)
+  }
 
-try {
-
-const result = await pool.query(`
-SELECT * FROM patients
-ORDER BY id DESC
-`)
-
-res.json(result.rows)
-
-} catch (err) {
-
-console.error(err)
-
-res.status(500).json({
-error: "Failed to fetch patients"
-})
-
-}
+  res.json(data)
 
 })
 
+// CREATE patient
+router.post("/patients", async (req, res) => {
 
-// ============================
-// GET PATIENT BY ID
-// ============================
+  const { first_name, last_name, phone } = req.body
 
-router.get("/:id", async (req, res) => {
+  const { data, error } = await supabase
+    .from("patients")
+    .insert([
+      { first_name, last_name, phone }
+    ])
 
-try {
+  if (error) {
+    return res.status(500).json(error)
+  }
 
-const { id } = req.params
-
-const result = await pool.query(
-"SELECT * FROM patients WHERE id=$1",
-[id]
-)
-
-res.json(result.rows[0])
-
-} catch (err) {
-
-console.error(err)
-
-res.status(500).json({
-error: "Patient not found"
-})
-
-}
-
-})
-
-
-// ============================
-// CREATE PATIENT
-// ============================
-
-router.post("/", async (req, res) => {
-
-try {
-
-const {
-name,
-email,
-phone,
-dob
-} = req.body
-
-const result = await pool.query(
-`
-INSERT INTO patients
-(name,email,phone,dob)
-VALUES ($1,$2,$3,$4)
-RETURNING *
-`,
-[name,email,phone,dob]
-)
-
-res.json(result.rows[0])
-
-} catch (err) {
-
-console.error(err)
-
-res.status(500).json({
-error: "Failed to create patient"
-})
-
-}
-
-})
-
-
-// ============================
-// UPDATE PATIENT
-// ============================
-
-router.put("/:id", async (req, res) => {
-
-try {
-
-const { id } = req.params
-const { name,email,phone } = req.body
-
-await pool.query(
-`
-UPDATE patients
-SET name=$1,email=$2,phone=$3
-WHERE id=$4
-`,
-[name,email,phone,id]
-)
-
-res.json({
-message:"Patient updated"
-})
-
-} catch (err) {
-
-console.error(err)
-
-res.status(500).json({
-error:"Update failed"
-})
-
-}
-
-})
-
-
-// ============================
-// DELETE PATIENT
-// ============================
-
-router.delete("/:id", async (req,res)=>{
-
-try{
-
-const {id} = req.params
-
-await pool.query(
-"DELETE FROM patients WHERE id=$1",
-[id]
-)
-
-res.json({
-message:"Patient deleted"
-})
-
-}catch(err){
-
-console.error(err)
-
-res.status(500).json({
-error:"Delete failed"
-})
-
-}
+  res.json(data)
 
 })
 
